@@ -24,6 +24,29 @@ FROM jenkins/slave:3.29-2
 MAINTAINER Oleg Nenashev <o.v.nenashev@gmail.com>
 LABEL Description="This is a base image, which allows connecting Jenkins agents via JNLP protocols" Vendor="Jenkins project" Version="3.29"
 
+ARG DOCKER_VERSION=18.06.0~ce~3-0~debian
+ARG DC_VERSION=1.24.0
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -qq -y --no-install-recommends \
+      apt-transport-https \
+      ca-certificates \
+      curl \
+      gnupg2 \
+      software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+    apt-key fingerprint 0EBFCD88 && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable" && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable" && \
+    apt-get update && \
+    apt-get install -qq -y --no-install-recommends docker-ce=${DOCKER_VERSION} && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN curl -L "https://github.com/docker/compose/releases/download/${DC_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /bin/docker-compose
+RUN chmod +x /bin/docker-compose
+
 COPY jenkins-slave /usr/local/bin/jenkins-slave
 
 ENTRYPOINT ["jenkins-slave"]
